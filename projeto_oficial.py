@@ -1,4 +1,3 @@
-
 import mysql.connector
 
 # Conexão com o banco de dados
@@ -83,6 +82,7 @@ elif opc1 == "N" and opc2 == "N" and opc3 == "N" and opc5 == "N" and (opc4 == "S
     uso_transporte = "Baixa Sustentabilidade"
     print(f'Uso de Transporte: {uso_transporte}')
 
+# Pra pessoa que for fazer a inserção no banco aqui precisa incluir a inserção dos dados na nova tabela com os valores
 insert_query = """
     INSERT INTO sustentabilidade (data, consumo_agua, consumo_energia, geracao_residuos, residuos_reciclaveis, uso_transporte)
     VALUES (%s, %s, %s, %s, %s, %s)
