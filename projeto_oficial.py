@@ -1,5 +1,9 @@
 import mysql.connector
 
+def criptografia(texto):
+    """"""
+def descriptografia(texto):
+    """"""
 # Conexão com o banco de dados
 conn = mysql.connector.connect(
     host="localhost",
@@ -10,12 +14,12 @@ conn = mysql.connector.connect(
 
 cursor = conn.cursor() # Para manipular o banco de dados com Python 
 
+# Coleta dos dados
 data = input("Qual é a data (yyyy-MM-dd): ")
 litros = int(input("\nQuantos litros de água você consumiu hoje? (Aprox. em litros): "))
 energia = float(input("Quantos kWh de energia elétrica você consumiu hoje?: "))
 residuos = float(input("Quantos kg de resíduos não recicláveis você gerou hoje?: "))
 reciclados = int(input("Qual a porcentagem de resíduos reciclados no total (em %)?: "))
-
 print("\nResponda com 'S' e 'N' qual meio de transporte você usou hoje?:")
 opc1 = input('1. Transporte público (ônibus, metrô, trem): ')
 opc2 = input('2. Bicicleta: ')
@@ -24,11 +28,12 @@ opc4 = input('4. Carro (combustível fósseis): ')
 opc5 = input('5. Carro elétrico: ')
 opc6 = input('6. Carona compartilhada (Fósseis): ')
 
-consumo_agua = ""
-consumo_energia = ""
-geracao_residuos = ""
-residuos_reciclaveis = ""
-uso_transporte = ""
+# Classificações usando funções
+consumo_agua = """"""
+consumo_energia = """"""
+geracao_residuos = """"""
+residuos_reciclaveis = """"""
+uso_transporte = """"""
 
 print("\nSustentabilidade:")
 
@@ -84,7 +89,7 @@ elif opc1 == "N" and opc2 == "N" and opc3 == "N" and opc5 == "N" and (opc4 == "S
 
 # Pra pessoa que for fazer a inserção no banco aqui precisa incluir a inserção dos dados na nova tabela com os valores
 insert_query = """
-    INSERT INTO sustentabilidade (data, consumo_agua, consumo_energia, geracao_residuos, residuos_reciclaveis, uso_transporte)
+    INSERT INTO resultados_sustentabilidade (data, consumo_agua, consumo_energia, geracao_residuos, residuos_reciclaveis, uso_transporte)
     VALUES (%s, %s, %s, %s, %s, %s)
 """
 values = (data, consumo_agua, consumo_energia, geracao_residuos, residuos_reciclaveis, uso_transporte)
