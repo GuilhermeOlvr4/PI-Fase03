@@ -1,0 +1,179 @@
+import mysql.connector
+
+# Chave simples para "criptografia" por substituição reversa (só pra simular)
+def criptografar_texto(texto):
+    return texto[::-1]
+
+def descriptografar_texto(texto):
+    return texto[::-1]
+
+# Conexão com o banco de dados
+conexao = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="",
+    database="bd_projetoti"
+)
+ponteiro = conexao.cursor()
+
+# ======================
+# Funções de classificação
+# ======================
+
+def classificar_agua(litros):
+    if litros < 150:
+        return "Alta Sustentabilidade"
+    elif litros <= 200:
+        return "Moderada Sustentabilidade"
+    else:
+        return "Baixa Sustentabilidade"
+
+def classificar_energia(energia):
+    if energia < 5:
+        return "Alta Sustentabilidade"
+    elif energia <= 10:
+        return "Moderada Sustentabilidade"
+    else:
+        return "Baixa Sustentabilidade"
+
+def classificar_residuos(residuos):
+    if residuos < 5:
+        return "Alta Sustentabilidade"
+    elif residuos <= 10:
+        return "Moderada Sustentabilidade"
+    else:
+        return "Baixa Sustentabilidade"
+
+def classificar_reciclaveis(reciclados):
+    if reciclados > 50:
+        return "Alta Sustentabilidade"
+    elif reciclados >= 20:
+        return "Moderada Sustentabilidade"
+    else:
+        return "Baixa Sustentabilidade"
+
+def classificar_transporte(transporte):
+    transporte = transporte.lower()
+    if transporte in ["bicicleta", "a pé", "bike", "apé"]:
+        return "Alta Sustentabilidade"
+    elif transporte in ["ônibus", "transporte público"]:
+        return "Moderada Sustentabilidade"
+    else:
+        return "Baixa Sustentabilidade"
+
+# ======================
+# Funções principais do sistema
+# ======================
+
+def cadastrar():
+    print("\nInforme os dados solicitados:")
+    print("Exemplos de transporte: carro, moto, bicicleta, a pé, ônibus, transporte público.")
+
+    data = input("Data (yyyy-MM-dd): ")
+    litros = int(input("Litros de água consumidos: "))
+    energia = float(input("kWh de energia consumidos: "))
+    residuos = float(input("Kg de resíduos não recicláveis: "))
+    reciclados = int(input("Quantidade de resíduos recicláveis: "))
+    transporte = input("Principal meio de transporte: ")
+
+    agua = criptografar_texto(classificar_agua(litros))
+    energia_resultado = criptografar_texto(classificar_energia(energia))
+    residuos_resultado = criptografar_texto(classificar_residuos(residuos))
+    reciclaveis = criptografar_texto(classificar_reciclaveis(reciclados))
+    transporte_resultado = criptografar_texto(classificar_transporte(transporte))
+
+    consulta = """
+        INSERT INTO resultados_sustentabilidade 
+        (data_registro, consumo_agua, consumo_energia, residuos_nao_reciclaveis, residuos_reciclaveis, transporte)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """
+    dados = (data, agua, energia_resultado, residuos_resultado, reciclaveis, transporte_resultado)
+
+    ponteiro.execute(consulta, dados)
+    conexao.commit()
+    print("\n✅ Dados inseridos com sucesso!\n")
+
+def alterar():
+    identificador = input("\nDigite o ID do registro que deseja alterar: ")
+    nova_data = input("Nova data (yyyy-MM-dd): ")
+    litros = int(input("Novos litros de água: "))
+    energia = float(input("Nova energia (kWh): "))
+    residuos = float(input("Novos resíduos não recicláveis (kg): "))
+    reciclados = int(input("Novos recicláveis: "))
+    transporte = input("Novo transporte: ")
+
+    agua = criptografar_texto(classificar_agua(litros))
+    energia_resultado = criptografar_texto(classificar_energia(energia))
+    residuos_resultado = criptografar_texto(classificar_residuos(residuos))
+    reciclaveis = criptografar_texto(classificar_reciclaveis(reciclados))
+    transporte_resultado = criptografar_texto(classificar_transporte(transporte))
+
+    consulta = """
+        UPDATE resultados_sustentabilidade SET 
+        data_registro = %s,
+        consumo_agua = %s,
+        consumo_energia = %s,
+        residuos_nao_reciclaveis = %s,
+        residuos_reciclaveis = %s,
+        transporte = %s
+        WHERE id_resultado = %s
+    """
+    dados = (nova_data, agua, energia_resultado, residuos_resultado, reciclaveis, transporte_resultado, identificador)
+
+    ponteiro.execute(consulta, dados)
+    conexao.commit()
+    print("\n✅ Registro atualizado com sucesso!\n")
+
+def excluir():
+    identificador = input("\nDigite o ID do registro que deseja excluir: ")
+    ponteiro.execute("DELETE FROM resultados_sustentabilidade WHERE id_resultado = %s", (identificador,))
+    conexao.commit()
+    print("\n✅ Registro excluído com sucesso!\n")
+
+def listar():
+    ponteiro.execute("SELECT * FROM resultados_sustentabilidade")
+    continuar = True
+    while continuar:
+        linha = ponteiro.fetchone()
+        if linha is None:
+            continuar = False
+        else:
+            print(
+                f"ID: {linha[0]}, Data: {linha[1]}, Água: {descriptografar_texto(linha[2])}, Energia: {descriptografar_texto(linha[3])}, "
+                f"Resíduos Não Recicláveis: {descriptografar_texto(linha[4])}, Recicláveis: {descriptografar_texto(linha[5])}, Transporte: {descriptografar_texto(linha[6])}"
+            )
+
+# ======================
+# Menu principal
+# ======================
+
+def menu():
+    finalizar = False
+    while not finalizar:
+        print("\n========= MENU =========")
+        print("1. Cadastrar parâmetros de sustentabilidade")
+        print("2. Alterar cadastro")
+        print("3. Excluir cadastro")
+        print("4. Ver classificações")
+        print("5. Sair")
+        escolha = input("Escolha uma opção: ")
+
+        if escolha == '1':
+            cadastrar()
+        elif escolha == '2':
+            alterar()
+        elif escolha == '3':
+            excluir()
+        elif escolha == '4':
+            listar()
+        elif escolha == '5':
+            print("Saindo...")
+            finalizar = True
+        else:
+            print("Opção inválida.")
+
+    ponteiro.close()
+    conexao.close()
+
+# Iniciar o sistema
+menu()
