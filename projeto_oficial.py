@@ -154,12 +154,43 @@ for row in results:
 
 cursor.close()
 conn.close()
-def menu(): #Parte guilherme
-    cadastrardados()
-    # por os prints para mostrar oque pode fazer, e quando atribuir um numero a uma função: usar ela 
-    # Exemplo:
-    # print(f'Menu')
-    # if variavelaleatoria == 1:
-    #    funcaoaleatoria()
+
+def menu():
+    
+    opcao = 0
+    while opcao != 6:
+        print(
+            "Menu:\n"
+            "\n1. Inserir dados de monitoramento\n"
+            "2. Alterar dados de monitoramento\n"
+            "3. Apagar dados de monitoramento\n"
+            "4. Listar cada monitoramento diário e classificar\n"
+            "5. Calcular e mostrar as médias dos parâmetros de monitoramento e classificar\n"
+            "6. Saída do sistema"
+        )
+
+        
+        opcao = input("Escolha uma opção: ")
+
+        if not opcao.isdigit():
+            print("Erro: digite um número de 1 a 6.")
+            continue
+
+        opcao = int(opcao)
+
+        if opcao < 1 or opcao > 6:
+            print("Escolha uma opção de 1 a 6.")
+        elif opcao == 1:
+            cadastrardados()
+        elif opcao == 2:
+            print("\nAlterar dados de monitoramento:\n")
+        elif opcao == 3:
+            print("\nApagar dados de monitoramento:\n")
+        elif opcao == 4:
+            print("\nListar cada monitoramento diário e classificar:\n")
+        elif opcao == 5:
+            print("\nCalcular e mostrar as médias dos parâmetros de monitoramento e classificar:\n")
+        elif opcao == 6:
+            print("\nSaindo do sistema\n")
 
 menu()
