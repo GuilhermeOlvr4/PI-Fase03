@@ -11,81 +11,79 @@ conn = mysql.connector.connect(
     password="",
     database="bd_projetoti"
 )
-
 cursor = conn.cursor() # Para manipular o banco de dados com Python 
 
-# Coleta dos dados
-data = input("Qual é a data (yyyy-MM-dd): ")
-litros = int(input("\nQuantos litros de água você consumiu hoje? (Aprox. em litros): "))
-energia = float(input("Quantos kWh de energia elétrica você consumiu hoje?: "))
-residuos = float(input("Quantos kg de resíduos não recicláveis você gerou hoje?: "))
-reciclados = int(input("Qual a porcentagem de resíduos reciclados no total (em %)?: "))
-print("\nResponda com 'S' e 'N' qual meio de transporte você usou hoje?:")
-opc1 = input('1. Transporte público (ônibus, metrô, trem): ')
-opc2 = input('2. Bicicleta: ')
-opc3 = input('3. Caminhada: ')
-opc4 = input('4. Carro (combustível fósseis): ')
-opc5 = input('5. Carro elétrico: ')
-opc6 = input('6. Carona compartilhada (Fósseis): ')
+def classif_agua(litros: int) -> str: # parte juan # Funções para classificar o comportamento sustentável
+    if litros < 150:
+        return "Alta Sustentabilidade"
+    elif 150 <= litros <= 200:
+        return "Moderada Sustentabilidade"
+    else:
+        return "Baixa Sustentabilidade"
 
+def classif_energia(energia: float) -> str:
+    if energia < 5:
+        return "Alta Sustentabilidade"
+    elif 5 <= energia <= 10:
+        return "Moderada Sustentabilidade"
+    else:
+        return "Baixa Sustentabilidade"
+
+def classif_residuos(residuos: float) -> str:
+    if residuos < 5:
+        return "Alta Sustentabilidade"
+    elif 5 <= residuos <= 10:
+        return "Moderada Sustentabilidade"
+    else:
+        return "Baixa Sustentabilidade"    
+
+def classif_reciclados(reciclados: int) -> str:
+    if reciclados > 50:
+        return "Alta Sustentabilidade"
+    elif 20 <= reciclados <= 50:
+        return "Moderada Sustentabilidade"
+    else:
+        return "Baixa Sustentabilidade"
+def classif_transporte(opc1,opc2,opc3,opc4,opc5,opc6: int) -> str:
+    if (opc1 == "S" or opc2 == "S" or opc3 == "S" or opc5 == "S") and opc4 == "N" and opc6 == "N":
+            return "Alta Sustentabilidade"      
+    elif (opc1 == "S" or opc2 == "S" or opc3 == "S" or opc5 == "S") and (opc4 == "S" or opc6 == "S"):
+            return "Moderada Sustentabilidade"
+    elif opc1 == "N" and opc2 == "N" and opc3 == "N" and opc5 == "N" and (opc4 == "S" or opc6 == "S"):
+            return "Baixa Sustentabilidade"
+    transportes_str = ""
+    if opc1 == 'S': transportes_str += "| Transporte Público |"
+    if opc2 == 'S': transportes_str += "| Bicicleta |"
+    if opc3 == 'S': transportes_str += "| Caminhada |"
+    if opc4 == 'S': transportes_str += "| Carro (combustível fósseis) |"
+    if opc5 == 'S': transportes_str += "| Carro Elétrico |"
+    if opc6 == 'S': transportes_str += "| Carona compartilhada (Fósseis) |"
+    
+def cadastrardados(): 
+# Coleta dos dados (cadastrar os dados)
+    data = input("Qual é a data (yyyy-MM-dd): ")
+    litros = int(input("\nQuantos litros de água você consumiu hoje? (Aprox. em litros): "))
+    energia = float(input("Quantos kWh de energia elétrica você consumiu hoje?: "))
+    residuos = float(input("Quantos kg de resíduos não recicláveis você gerou hoje?: "))
+    reciclados = int(input("Qual a porcentagem de resíduos reciclados no total (em %)?: "))
+    print("\nResponda com 'S' e 'N' qual meio de transporte você usou hoje?:")
+    opc1 = input('1. Transporte público (ônibus, metrô, trem): ')
+    opc2 = input('2. Bicicleta: ')
+    opc3 = input('3. Caminhada: ')
+    opc4 = input('4. Carro (combustível fósseis): ')
+    opc5 = input('5. Carro elétrico: ')
+    opc6 = input('6. Carona compartilhada (Fósseis): ')
+    # Parte de criptografia
+    agua = criptografia(classif_agua(litros))
+    ...
+    ...
+    # precisa do comando SQL para inserir os dados
 # Classificações usando funções
 consumo_agua = """"""
 consumo_energia = """"""
 geracao_residuos = """"""
 residuos_reciclaveis = """"""
 uso_transporte = """"""
-
-print("\nSustentabilidade:")
-
-if litros < 150:
-    consumo_agua = "Alta Sustentabilidade"
-    print(f'Consumo de água: {consumo_agua}')
-elif litros >= 150 and litros <= 200:
-    consumo_agua = "Moderada Sustentabilidade"
-    print(f'Consumo de água: {consumo_agua}')
-else:
-    consumo_agua = "Baixa Sustentabilidade"
-    print(f'Consumo de água: {consumo_agua}')
-
-if energia < 5:
-    consumo_energia = "Alta Sustentabilidade"
-    print(f'Consumo de energia: {consumo_energia}')
-elif energia >= 5 and energia <= 10:
-    consumo_energia = "Moderada Sustentabilidade"
-    print(f'Consumo de energia: {consumo_energia}')
-else:
-    consumo_energia = "Baixa Sustentabilidade"
-    print(f'Consumo de energia: {consumo_energia}')
-
-if residuos < 5:
-    geracao_residuos = "Alta Sustentabilidade"
-    print(f'Geração de Resíduos Não Recicláveis: {geracao_residuos}')
-elif litros >= 5 and litros <= 10:
-    geracao_residuos = "Moderada Sustentabilidade"
-    print(f'Geração de Resíduos Não Recicláveis: {geracao_residuos}')
-else:
-    geracao_residuos = "Baixa Sustentabilidade"
-    print(f'Geração de Resíduos Não Recicláveis: {geracao_residuos}')
-
-if reciclados > 50:
-    residuos_reciclaveis = "Alta Sustentabilidade"
-    print(f'Resíduos Reciclados: {residuos_reciclaveis}')
-elif litros >= 20 and litros <= 50:
-    residuos_reciclaveis = "Moderada Sustentabilidade"
-    print(f'Resíduos Reciclados: {residuos_reciclaveis}')
-else:
-    residuos_reciclaveis = "Baixa Sustentabilidade"
-    print(f'Resíduos Reciclados: {residuos_reciclaveis}')
-
-if (opc1 == "S" or opc2 == "S" or opc3 == "S" or opc5 == "S") and opc4 == "N" and opc6 == "N":
-    uso_transporte = "Alta Sustentabilidade"
-    print(f'Uso de Transporte: {uso_transporte}')
-elif (opc1 == "S" or opc2 == "S" or opc3 == "S" or opc5 == "S") and (opc4 == "S" or opc6 == "S"):
-    uso_transporte = "Moderada Sustentabilidade"
-    print(f'Uso de Transporte: {uso_transporte}')
-elif opc1 == "N" and opc2 == "N" and opc3 == "N" and opc5 == "N" and (opc4 == "S" or opc6 == "S"):
-    uso_transporte = "Baixa Sustentabilidade"
-    print(f'Uso de Transporte: {uso_transporte}')
 
 # Pra pessoa que for fazer a inserção no banco aqui precisa incluir a inserção dos dados na nova tabela com os valores
 insert_query = """
@@ -98,8 +96,11 @@ cursor.execute(insert_query, values)
 conn.commit()
 
 print("\nDados inseridos com sucesso!")
-
-
+# Parte do vinicius
+# def alterar_dados():
+# def excluir_dados():
+# def listar_dados():
+# QUERY  PARA GERAR AS MÉDIAS DAS CLASSIFICAÇÕES
 select_query = """
 SELECT
     -- Consumo de água
@@ -140,7 +141,6 @@ FROM sustentabilidade;
 """
 
 cursor.execute(select_query)
-
 results = cursor.fetchall()
 
 print("\nMédia de todos os dados presentes no banco:")
@@ -154,3 +154,12 @@ for row in results:
 
 cursor.close()
 conn.close()
+def menu(): #Parte guilherme
+    cadastrardados()
+    # por os prints para mostrar oque pode fazer, e quando atribuir um numero a uma função: usar ela 
+    # Exemplo:
+    # print(f'Menu')
+    # if variavelaleatoria == 1:
+    #    funcaoaleatoria()
+
+menu()
