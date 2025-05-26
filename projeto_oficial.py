@@ -1,25 +1,22 @@
 import mysql.connector
 
-# Funções de criptografia simples
+ALFABETO = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz '
+def cifra_cesar(texto, deslocamento):
+    resultado = ''
+    for caractere in texto:
+        if caractere in ALFABETO:
+            indice = ALFABETO.index(caractere)
+            novo_indice = (indice + deslocamento) % len(ALFABETO)
+            resultado += ALFABETO[novo_indice]
+        else:
+            resultado += caractere 
+    return resultado
+
 def criptografia(texto):
-    if texto == 'Alta Sustentabilidade':
-        return 'A1'
-    elif texto == 'Moderada Sustentabilidade':
-        return 'B2'
-    elif texto == 'Baixa Sustentabilidade':
-        return 'C3'
-    else:
-        return texto
+    return cifra_cesar(texto, 3)
 
 def descriptografia(texto):
-    if texto == 'A1':
-        return 'Alta Sustentabilidade'
-    elif texto == 'B2':
-        return 'Moderada Sustentabilidade'
-    elif texto == 'C3':
-        return 'Baixa Sustentabilidade'
-    else:
-        return texto
+    return cifra_cesar(texto, -3)
 
 # Conexão com o banco de dados 
 conn = mysql.connector.connect(
@@ -31,7 +28,7 @@ conn = mysql.connector.connect(
 cursor = conn.cursor()
 
 # Funções de classificação: avaliam o nível de sustentabilidade
-def classif_agua(litros: int) -> str:
+def classif_agua(litros):
     if litros < 150:
         return "Alta Sustentabilidade"
     elif 150 <= litros <= 200:
@@ -39,15 +36,15 @@ def classif_agua(litros: int) -> str:
     else:
         return "Baixa Sustentabilidade"
 
-def classif_energia(energia: float) -> str:
+def classif_energia(energia):
     if energia < 5:
         return "Alta Sustentabilidade"
     elif 5 <= energia <= 10:
-        return "Moderada Sustentabilidade"
+        return "Moderada Sustentabilidade"  
     else:
         return "Baixa Sustentabilidade" 
 
-def classif_reciclados(reciclados: float) -> str:
+def classif_reciclados(reciclados):
     if reciclados > 50:
         return "Alta Sustentabilidade"
     elif 20 <= reciclados <= 50:
@@ -55,7 +52,7 @@ def classif_reciclados(reciclados: float) -> str:
     else:
         return "Baixa Sustentabilidade"
     
-def classif_transporte(opc1, opc2, opc3, opc4, opc5, opc6: int) -> str:
+def classif_transporte(opc1, opc2, opc3, opc4, opc5,opc6):
     if (opc1 == "S" or opc2 == "S" or opc3 == "S" or opc5 == "S") and opc4 == "N" and opc6 == "N":
         return "Alta Sustentabilidade"      
     elif (opc1 == "S" or opc2 == "S" or opc3 == "S" or opc5 == "S") and (opc4 == "S" or opc6 == "S"):
@@ -183,7 +180,6 @@ def excluir_dados():
     conn.commit()
     print("\nRegistro excluído com sucesso!")
 
-
 def listar_dados():
     select_query = """
     SELECT 
@@ -219,46 +215,65 @@ def listar_dados():
         print("--------------------------------------------------")
 
 def media_dados():
-    media_query = """
-    SELECT
-      -- Água
-      CASE
-        WHEN COUNT(DISTINCT consumo_agua) = 1 AND MAX(consumo_agua) = 'A1' THEN 'Alta Sustentabilidade'
-        WHEN COUNT(DISTINCT consumo_agua) = 1 AND MAX(consumo_agua) = 'C3' THEN 'Baixa Sustentabilidade'
-        ELSE 'Moderada Sustentabilidade'
-      END AS media_consumo_agua,
+    cursor.execute("""
+        SELECT consumo_agua, consumo_energia, geracao_residuos, uso_transporte
+        FROM resultados_sustentabilidade
+    """)
+    dados = cursor.fetchall()
 
-      -- Energia
-      CASE
-        WHEN COUNT(DISTINCT consumo_energia) = 1 AND MAX(consumo_energia) = 'A1' THEN 'Alta Sustentabilidade'
-        WHEN COUNT(DISTINCT consumo_energia) = 1 AND MAX(consumo_energia) = 'C3' THEN 'Baixa Sustentabilidade'
-        ELSE 'Moderada Sustentabilidade'
-      END AS media_consumo_energia,
+    total = len(dados)
+    if total == 0:
+        print("\nNenhum dado encontrado para cálculo de média.\n")
+        return
 
-      -- Resíduos
-      CASE
-        WHEN COUNT(DISTINCT geracao_residuos) = 1 AND MAX(geracao_residuos) = 'A1' THEN 'Alta Sustentabilidade'
-        WHEN COUNT(DISTINCT geracao_residuos) = 1 AND MAX(geracao_residuos) = 'C3' THEN 'Baixa Sustentabilidade'
-        ELSE 'Moderada Sustentabilidade'
-      END AS media_geracao_residuos,
+    cont_agua = {"Alta": 0, "Moderada": 0, "Baixa": 0}
+    cont_energia = {"Alta": 0, "Moderada": 0, "Baixa": 0}
+    cont_residuos = {"Alta": 0, "Moderada": 0, "Baixa": 0}
+    cont_transporte = {"Alta": 0, "Moderada": 0, "Baixa": 0}
 
-      -- Transporte
-      CASE
-        WHEN COUNT(DISTINCT uso_transporte) = 1 AND MAX(uso_transporte) = 'A1' THEN 'Alta Sustentabilidade'
-        WHEN COUNT(DISTINCT uso_transporte) = 1 AND MAX(uso_transporte) = 'C3' THEN 'Baixa Sustentabilidade'
-        ELSE 'Moderada Sustentabilidade'
-      END AS media_uso_transporte
+    for cr_agua, cr_energia, cr_res, cr_transp in dados:
+        agua = descriptografia(cr_agua)
+        energia = descriptografia(cr_energia)
+        residuos = descriptografia(cr_res)
+        transporte = descriptografia(cr_transp)
 
-    FROM resultados_sustentabilidade
-    """
-    cursor.execute(media_query)
-    media = cursor.fetchone()
+        if "Alta" in agua:
+            cont_agua["Alta"] += 1
+        elif "Baixa" in agua:
+            cont_agua["Baixa"] += 1
+        else:
+            cont_agua["Moderada"] += 1
+
+        if "Alta" in energia:
+            cont_energia["Alta"] += 1
+        elif "Baixa" in energia:
+            cont_energia["Baixa"] += 1
+        else:
+            cont_energia["Moderada"] += 1
+
+        if "Alta" in residuos:
+            cont_residuos["Alta"] += 1
+        elif "Baixa" in residuos:
+            cont_residuos["Baixa"] += 1
+        else:
+            cont_residuos["Moderada"] += 1
+
+        if "Alta" in transporte:
+            cont_transporte["Alta"] += 1
+        elif "Baixa" in transporte:
+            cont_transporte["Baixa"] += 1
+        else:
+            cont_transporte["Moderada"] += 1
+
+    def maior_categoria(contador):
+        chave = max(contador, key=contador.get)
+        return f"{chave} Sustentabilidade"
 
     print("\nMédias Classificadas de Sustentabilidade:\n")
-    print(f"Consumo de Água: {media[0]}")
-    print(f"Consumo de Energia: {media[1]}")
-    print(f"Geração de Resíduos: {media[2]}")
-    print(f"Uso de Transporte: {media[3]}")
+    print("Consumo de Água:   ", maior_categoria(cont_agua))
+    print("Consumo de Energia:", maior_categoria(cont_energia))
+    print("Geração de Resíduos:", maior_categoria(cont_residuos))
+    print("Uso de Transporte: ", maior_categoria(cont_transporte))
 
 def menu():    
     opcao = 0
@@ -294,5 +309,4 @@ def menu():
             print("\nSaindo do sistema.\n")
             cursor.close()
             conn.close()
-
 menu()
