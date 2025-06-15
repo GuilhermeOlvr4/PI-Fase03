@@ -1,57 +1,36 @@
-from sympy import Matrix
 import mysql.connector
 
-ALFABETO_HILL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+ALFABETO = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+CHAVE     = [[3, 3], [2, 5]]
+CHAVE_INV = [[15, 17], [20, 9]]
 
-def letra_para_num(letra):
-    return ALFABETO_HILL.index(letra)
+def hill_cipher(texto, matriz):
+    txt = "".join(c for c in texto.upper() if c in ALFABETO)
+    if len(txt) % 2:
+        txt += "A"
+    res = ""
+    for i in range(0, len(txt), 2):
+        a = ALFABETO.index(txt[i])
+        b = ALFABETO.index(txt[i+1])
+        c = (matriz[0][0]*a + matriz[0][1]*b) % 26
+        d = (matriz[1][0]*a + matriz[1][1]*b) % 26
+        res += ALFABETO[c] + ALFABETO[d]
+    return res
 
-def num_para_letra(num):
-    return ALFABETO_HILL[num % 26]
+def criptografia(texto):
+    return hill_cipher(texto, CHAVE)
 
-def ajustar_texto(texto):
-    texto = texto.upper().replace(" ", "")
-    if len(texto) % 2 != 0:
-        texto += 'X'
-    return texto
-     
-chave = Matrix([[3, 3],
-                [2, 5]])
-
-def criptografar_hill(texto):
-    texto = ajustar_texto(texto)
-    resultado_cifrado = ''
-    for i in range(0, len(texto), 2):
-        bloco = texto[i:i+2]
-        vetor = Matrix([letra_para_num(bloco[0]), letra_para_num(bloco[1])])
-        produto = chave * vetor % 26
-        resultado_cifrado += num_para_letra(produto[0]) + num_para_letra(produto[1])
-    return resultado_cifrado
-
-def descriptografar_hill(texto_cripto):
-    resultado_decifrado = ''
-    chave_inversa = chave.inv_mod(26)
-    for i in range(0, len(texto_cripto), 2):
-        bloco = texto_cripto[i:i+2]
-        vetor = Matrix([letra_para_num(bloco[0]), letra_para_num(bloco[1])])
-        produto = chave_inversa * vetor % 26
-        resultado_decifrado += num_para_letra(produto[0]) + num_para_letra(produto[1])
-    if resultado_decifrado.endswith('X'):
-        resultado_decifrado = resultado_decifrado[:-1]
-    return resultado_decifrado
+def descriptografia(texto_cifrado):
+    res = hill_cipher(texto_cifrado, CHAVE_INV)
+    if res.endswith("A"):
+        res = res[:-1]
+    return _MAP_CLASSIFICACOES.get(res, res)
 
 _MAP_CLASSIFICACOES = {
     "ALTASUSTENTABILIDADE":    "Alta Sustentabilidade",
     "MODERADASUSTENTABILIDADE": "Moderada Sustentabilidade",
     "BAIXASUSTENTABILIDADE":   "Baixa Sustentabilidade",
 }
-
-def criptografia(texto):
-    return criptografar_hill(texto)
-
-def descriptografia(texto_cripto):
-    sem_espacos = descriptografar_hill(texto_cripto)
-    return _MAP_CLASSIFICACOES.get(sem_espacos, sem_espacos)
 
 conn = mysql.connector.connect(
     host="127.0.0.1",
@@ -84,7 +63,7 @@ def classif_reciclados(reciclados):
         return "Moderada Sustentabilidade"
     else:
         return "Baixa Sustentabilidade"
-    
+
 def classif_transporte(opc1, opc2, opc3, opc4, opc5, opc6):
     if (opc1 == "S" or opc2 == "S" or opc3 == "S" or opc5 == "S") and opc4 == "N" and opc6 == "N":
         return "Alta Sustentabilidade"
@@ -155,7 +134,7 @@ def alterar_dados():
         return
 
     litros = int(input("\nNovo valor - Quantos litros de água foram consumidos?: "))
-    energia = float(input("Novo valor - Quantos kWh de energia foram consumidos?: "))
+    energia = float(input("Novo valor - Quantos kWh foram consumidos?: "))
     residuos = float(input("Novo valor - Quantos kg de resíduos não recicláveis foram gerados?: "))
     reciclados = int(input("Novo valor - Qual a porcentagem de resíduos reciclados (em %)? : "))
 
@@ -226,18 +205,17 @@ def listar_dados():
         print("\nNenhum monitoramento cadastrado.\n")
         return
 
-    print("\nMonitoramentos cadastrados:\n")
     for (data, litros, cod_agua, energia, cod_energia, residuos, reciclaveis, cod_residuos, transportes_str, cod_transporte) in registros:
-        classif_agua = descriptografia(cod_agua)
-        classif_energia = descriptografia(cod_energia)
-        classif_resid = descriptografia(cod_residuos)
-        classif_transp = descriptografia(cod_transporte)
+        classif_agua_txt = descriptografia(cod_agua)
+        classif_energia_txt = descriptografia(cod_energia)
+        classif_resid_txt = descriptografia(cod_residuos)
+        classif_transp_txt = descriptografia(cod_transporte)
 
         print(f"Data: {data}\n")
-        print(f"Consumo de Água: {litros:.2f} litros (Classificação: {classif_agua})")
-        print(f"Consumo de Energia: {energia:.2f} kWh (Classificação: {classif_energia})")
-        print(f"Resíduos não recicláveis gerados: {residuos:.2f} kg | Porcentagem de reciclados: {reciclaveis:.2f}% (Classificação: {classif_resid})")
-        print(f"Uso de Transporte: {transportes_str} (Classificação: {classif_transp})")
+        print(f"Consumo de Água: {litros:.2f} litros (Classificação: {classif_agua_txt})")
+        print(f"Consumo de Energia: {energia:.2f} kWh (Classificação: {classif_energia_txt})")
+        print(f"Resíduos não recicláveis gerados: {residuos:.2f} kg | Porcentagem de reciclados: {reciclaveis:.2f}% (Classificação: {classif_resid_txt})")
+        print(f"Uso de Transporte: {transportes_str} (Classificação: {classif_transp_txt})")
         print("--------------------------------------------------")
 
 def media_dados():
@@ -272,39 +250,25 @@ def media_dados():
         texto_cr = descriptografia(cr)
         texto_ct = descriptografia(ct)
 
-        if "Alta" in texto_ca:
-            cont_agua["Alta"] += 1
-        elif "Baixa" in texto_ca:
-            cont_agua["Baixa"] += 1
-        else:
-            cont_agua["Moderada"] += 1
+        if "Alta" in texto_ca: cont_agua["Alta"] += 1
+        elif "Baixa" in texto_ca: cont_agua["Baixa"] += 1
+        else: cont_agua["Moderada"] += 1
 
-        if "Alta" in texto_ce:
-            cont_energia["Alta"] += 1
-        elif "Baixa" in texto_ce:
-            cont_energia["Baixa"] += 1
-        else:
-            cont_energia["Moderada"] += 1
+        if "Alta" in texto_ce: cont_energia["Alta"] += 1
+        elif "Baixa" in texto_ce: cont_energia["Baixa"] += 1
+        else: cont_energia["Moderada"] += 1
 
-        if "Alta" in texto_cr:
-            cont_residuos["Alta"] += 1
-        elif "Baixa" in texto_cr:
-            cont_residuos["Baixa"] += 1
-        else:
-            cont_residuos["Moderada"] += 1
+        if "Alta" in texto_cr: cont_residuos["Alta"] += 1
+        elif "Baixa" in texto_cr: cont_residuos["Baixa"] += 1
+        else: cont_residuos["Moderada"] += 1
 
-        if "Alta" in texto_ct:
-            cont_transporte["Alta"] += 1
-        elif "Baixa" in texto_ct:
-            cont_transporte["Baixa"] += 1
-        else:
-            cont_transporte["Moderada"] += 1
+        if "Alta" in texto_ct: cont_transporte["Alta"] += 1
+        elif "Baixa" in texto_ct: cont_transporte["Baixa"] += 1
+        else: cont_transporte["Moderada"] += 1
 
     def classificacao_media(cont):
-        if cont["Alta"] == total:
-            return "Alta Sustentabilidade"
-        if cont["Baixa"] == total:
-            return "Baixa Sustentabilidade"
+        if cont["Alta"] == total: return "Alta Sustentabilidade"
+        if cont["Baixa"] == total: return "Baixa Sustentabilidade"
         return "Moderada Sustentabilidade"
 
     print("\nMédia dos valores")
@@ -312,7 +276,6 @@ def media_dados():
     print(f"Média de Consumo de Energia:  {soma_energia / total:.2f} kWh")
     print(f"Média de Resíduos Gerados:    {soma_residuos / total:.2f} kg")
     print(f"Média de Resíduos Reciclados: {soma_reciclaveis / total:.2f}%")
-
     print("\nMédia das classificações")
     print("Consumo de Água:     ", classificacao_media(cont_agua))
     print("Consumo de Energia:  ", classificacao_media(cont_energia))
@@ -320,36 +283,24 @@ def media_dados():
     print("Uso de Transporte:   ", classificacao_media(cont_transporte))
 
 def menu():
-    opcao = 0
-    while opcao != 6:
+    opcao = ""
+    while opcao != "6":
         print(
             "\nMenu:\n"
-            "\n1. Inserir dados de monitoramento\n"
+            "1. Inserir dados de monitoramento\n"
             "2. Alterar dados de monitoramento\n"
             "3. Apagar dados de monitoramento\n"
             "4. Listar cada monitoramento diário e classificar\n"
             "5. Calcular e mostrar as médias dos parâmetros de monitoramento e classificar\n"
             "6. Saída do sistema"
         )
-
         opcao = input("\nEscolha uma opção: ")
-        if not opcao.isdigit():
-            print("Erro: digite um número de 1 a 6.")
-            continue
-        opcao = int(opcao)
-        if opcao < 1 or opcao > 6:
-            print("Escolha uma opção de 1 a 6.")
-        elif opcao == 1:
-            cadastrardados()
-        elif opcao == 2:
-            alterar_dados()
-        elif opcao == 3:
-            excluir_dados()
-        elif opcao == 4:
-            listar_dados()
-        elif opcao == 5:
-            media_dados()
-        elif opcao == 6:
+        if opcao == "1": cadastrardados()
+        elif opcao == "2": alterar_dados()
+        elif opcao == "3": excluir_dados()
+        elif opcao == "4": listar_dados()
+        elif opcao == "5": media_dados()
+        elif opcao == "6":
             print("\nSaindo do sistema.\n")
             cursor.close()
             conn.close()
